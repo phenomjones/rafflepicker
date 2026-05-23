@@ -18,23 +18,63 @@
     --green:#3f7d52;
     --line:#d8c9b2;
     --shadow:rgba(40,28,14,.18);
+    --bg-base:#efe6d6;
+    --glow1:rgba(200,150,42,.10);
+    --glow2:rgba(178,58,50,.08);
+    --muted:#8a7a60;
+    --input-bg:#ffffff;
+    --btn-bg:#1a1410;
+    --btn-bg-hover:#000000;
+    --btn-fg:#ffffff;
+    --redeem-done:#bdb19c;
+  }
+  :root[data-theme="dark"]{
+    --ink:#f1e7d6;
+    --paper:#1a140e;
+    --card:#2a2017;
+    --gold:#e2b652;
+    --gold-deep:#d9a83f;
+    --red:#e0746b;
+    --green:#4f9d68;
+    --line:#473a29;
+    --shadow:rgba(0,0,0,.55);
+    --bg-base:#15100b;
+    --glow1:rgba(200,150,42,.14);
+    --glow2:rgba(178,58,50,.12);
+    --muted:#ab9a80;
+    --input-bg:#211a12;
+    --btn-bg:#e2b652;
+    --btn-bg-hover:#f0c668;
+    --btn-fg:#1a140e;
+    --redeem-done:#5a4f3c;
   }
   *{box-sizing:border-box;margin:0;padding:0}
   html,body{height:100%}
   body{
     font-family:'Bricolage Grotesque',sans-serif;
     background:
-      radial-gradient(circle at 18% 12%, rgba(200,150,42,.10), transparent 42%),
-      radial-gradient(circle at 85% 88%, rgba(178,58,50,.08), transparent 45%),
-      #efe6d6;
+      radial-gradient(circle at 18% 12%, var(--glow1), transparent 42%),
+      radial-gradient(circle at 85% 88%, var(--glow2), transparent 45%),
+      var(--bg-base);
     color:var(--ink);
     min-height:100vh;
     padding:32px 20px 64px;
     background-attachment:fixed;
+    transition:background-color .25s ease, color .25s ease;
   }
   .wrap{max-width:920px;margin:0 auto}
+  body, .panel, .ticket, .field input, .theme-toggle{
+    transition:background-color .25s ease, border-color .25s ease, color .25s ease;
+  }
 
-  header{text-align:center;margin-bottom:28px}
+  header{text-align:center;margin-bottom:28px;position:relative}
+  .theme-toggle{
+    position:absolute;top:-2px;right:0;width:44px;height:44px;border-radius:50%;
+    background:var(--card);border:1.5px solid var(--line);color:var(--gold-deep);
+    font-size:18px;line-height:1;display:flex;align-items:center;justify-content:center;
+    box-shadow:0 8px 18px -12px var(--shadow);z-index:2;
+  }
+  .theme-toggle:hover{border-color:var(--gold)}
   .kicker{
     font-family:'DM Mono',monospace;text-transform:uppercase;
     letter-spacing:.32em;font-size:11px;color:var(--gold-deep);
@@ -72,7 +112,7 @@
   .field input{
     font-family:'DM Mono',monospace;font-size:20px;font-weight:500;
     width:96px;padding:9px 12px;border:1.5px solid var(--line);
-    border-radius:10px;background:#fff;color:var(--ink);
+    border-radius:10px;background:var(--input-bg);color:var(--ink);
     transition:border-color .15s;
   }
   .field input:focus{outline:none;border-color:var(--gold)}
@@ -83,11 +123,11 @@
   }
   button:active{transform:translateY(1px)}
   .btn-draw{
-    background:var(--ink);color:#fff;font-weight:800;font-size:17px;
+    background:var(--btn-bg);color:var(--btn-fg);font-weight:800;font-size:17px;
     padding:13px 26px;letter-spacing:.01em;
     box-shadow:0 10px 22px -10px rgba(26,20,16,.7);
   }
-  .btn-draw:hover{background:#000}
+  .btn-draw:hover{background:var(--btn-bg-hover)}
   .btn-draw:disabled{background:#b4a890;cursor:not-allowed;box-shadow:none}
   .btn-ghost{
     background:transparent;color:var(--gold-deep);font-weight:600;font-size:13px;
@@ -105,7 +145,7 @@
   /* status bar */
   .status{
     display:flex;gap:22px;flex-wrap:wrap;
-    font-family:'DM Mono',monospace;font-size:12.5px;color:#7a6c56;
+    font-family:'DM Mono',monospace;font-size:12.5px;color:var(--muted);
     margin:0 4px 18px;
   }
   .status b{color:var(--ink);font-weight:500}
@@ -113,7 +153,7 @@
 
   /* drawn area */
   .stage-label{
-    font-family:'Fraunces',serif;font-size:15px;font-style:italic;color:#8a7a60;
+    font-family:'Fraunces',serif;font-size:15px;font-style:italic;color:var(--muted);
     margin:0 4px 12px;display:flex;align-items:center;gap:10px;
   }
   .stage-label::after{content:"";flex:1;height:1px;background:var(--line)}
@@ -128,10 +168,6 @@
     box-shadow:0 12px 26px -18px var(--shadow);
     animation:pop .42s cubic-bezier(.18,.9,.32,1.4) both;
     overflow:hidden;
-  }
-  .ticket::after{
-    content:"";position:absolute;left:0;right:0;top:38px;
-    border-top:1.5px dashed var(--line);
   }
   .ticket .num{
     font-family:'DM Mono',monospace;font-weight:500;
@@ -149,14 +185,14 @@
   .ticket .redeem:hover{background:#356845}
   .ticket.done{opacity:.5}
   .ticket.done .num{text-decoration:line-through;text-decoration-color:var(--red);text-decoration-thickness:2px}
-  .ticket.done .redeem{background:#bdb19c;cursor:default}
-  .ticket.done .redeem:hover{background:#bdb19c}
+  .ticket.done .redeem{background:var(--redeem-done);cursor:default}
+  .ticket.done .redeem:hover{background:var(--redeem-done)}
 
   @keyframes pop{from{opacity:0;transform:scale(.7) translateY(14px)}to{opacity:1;transform:none}}
 
   .empty{
     font-family:'Fraunces',serif;font-style:italic;
-    color:#a8967a;text-align:center;padding:44px 0;font-size:18px;
+    color:var(--muted);text-align:center;padding:44px 0;font-size:18px;
   }
   .warn{
     font-family:'DM Mono',monospace;font-size:12px;color:var(--red);
@@ -164,13 +200,22 @@
   }
   footer{
     text-align:center;margin-top:40px;font-family:'DM Mono',monospace;
-    font-size:11px;color:#a8967a;letter-spacing:.05em;
+    font-size:11px;color:var(--muted);letter-spacing:.05em;
   }
 </style>
+<script>
+  (function(){
+    var t;
+    try{ t=localStorage.getItem('raffleTheme'); }catch(e){}
+    if(!t){ t=(window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches)?'dark':'light'; }
+    document.documentElement.setAttribute('data-theme', t);
+  })();
+</script>
 </head>
 <body>
 <div class="wrap">
   <header>
+    <button class="theme-toggle" id="themeToggle" aria-label="Toggle dark mode">🌙</button>
     <div class="kicker">Door Prize · Drawing Booth</div>
     <h1>Raffle <span class="amp">&amp;</span> Draw</h1>
   </header>
@@ -353,6 +398,21 @@
   $('drawBtn').addEventListener('click',drawTickets);
   resetBtn.addEventListener('click',resetClicked);
   $('count').addEventListener('change',save);
+
+  // ---- theme toggle ----
+  var themeToggle=$('themeToggle');
+  function syncThemeIcon(){
+    var dark=document.documentElement.getAttribute('data-theme')==='dark';
+    themeToggle.textContent=dark?'☀️':'🌙';
+  }
+  themeToggle.addEventListener('click',function(){
+    var dark=document.documentElement.getAttribute('data-theme')==='dark';
+    var next=dark?'light':'dark';
+    document.documentElement.setAttribute('data-theme',next);
+    syncThemeIcon();
+    if(storageOK){ try{localStorage.setItem('raffleTheme',next);}catch(e){} }
+  });
+  syncThemeIcon();
   ['min','max'].forEach(function(id){
     $(id).addEventListener('change',function(){
       // allow re-configuring range only before any numbers are drawn
