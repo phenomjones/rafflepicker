@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Raffle Drawer</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,900&family=DM+Mono:wght@400;500&family=Bricolage+Grotesque:wght@400;600;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#1a1410;
+    --paper:#f4ece0;
+    --card:#fffaf2;
+    --gold:#c8962a;
+    --gold-deep:#9a6f12;
+    --red:#b23a32;
+    --green:#3f7d52;
+    --line:#d8c9b2;
+    --shadow:rgba(40,28,14,.18);
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%}
+  body{
+    font-family:'Bricolage Grotesque',sans-serif;
+    background:
+      radial-gradient(circle at 18% 12%, rgba(200,150,42,.10), transparent 42%),
+      radial-gradient(circle at 85% 88%, rgba(178,58,50,.08), transparent 45%),
+      #efe6d6;
+    color:var(--ink);
+    min-height:100vh;
+    padding:32px 20px 64px;
+    background-attachment:fixed;
+  }
+  .wrap{max-width:920px;margin:0 auto}
+
+  header{text-align:center;margin-bottom:28px}
+  .kicker{
+    font-family:'DM Mono',monospace;text-transform:uppercase;
+    letter-spacing:.32em;font-size:11px;color:var(--gold-deep);
+    margin-bottom:6px;
+  }
+  h1{
+    font-family:'Fraunces',serif;font-weight:900;font-size:clamp(38px,7vw,68px);
+    line-height:.95;letter-spacing:-.02em;
+  }
+  h1 .amp{color:var(--gold);font-style:italic;font-weight:600}
+
+  /* control panel */
+  .panel{
+    background:var(--card);
+    border:1px solid var(--line);
+    border-radius:18px;
+    padding:22px 24px;
+    box-shadow:0 18px 40px -24px var(--shadow);
+    margin-bottom:26px;
+    position:relative;
+  }
+  .panel::before{
+    content:"";position:absolute;inset:6px;border:1px dashed var(--line);
+    border-radius:12px;pointer-events:none;
+  }
+  .controls{
+    display:flex;flex-wrap:wrap;gap:18px 26px;align-items:flex-end;
+    position:relative;
+  }
+  .field{display:flex;flex-direction:column;gap:6px}
+  .field label{
+    font-family:'DM Mono',monospace;font-size:11px;text-transform:uppercase;
+    letter-spacing:.14em;color:var(--gold-deep);
+  }
+  .field input{
+    font-family:'DM Mono',monospace;font-size:20px;font-weight:500;
+    width:96px;padding:9px 12px;border:1.5px solid var(--line);
+    border-radius:10px;background:#fff;color:var(--ink);
+    transition:border-color .15s;
+  }
+  .field input:focus{outline:none;border-color:var(--gold)}
+  .spacer{flex:1 1 40px}
+  button{
+    font-family:'Bricolage Grotesque',sans-serif;cursor:pointer;
+    border:none;border-radius:10px;transition:transform .08s, box-shadow .15s, background .15s;
+  }
+  button:active{transform:translateY(1px)}
+  .btn-draw{
+    background:var(--ink);color:#fff;font-weight:800;font-size:17px;
+    padding:13px 26px;letter-spacing:.01em;
+    box-shadow:0 10px 22px -10px rgba(26,20,16,.7);
+  }
+  .btn-draw:hover{background:#000}
+  .btn-draw:disabled{background:#b4a890;cursor:not-allowed;box-shadow:none}
+  .btn-ghost{
+    background:transparent;color:var(--gold-deep);font-weight:600;font-size:13px;
+    padding:11px 16px;border:1.5px solid var(--line);
+  }
+  .btn-ghost:hover{border-color:var(--gold);color:var(--ink)}
+  .btn-ghost.arm1{border-color:var(--red);color:var(--red);font-weight:800}
+  .btn-ghost.arm2{background:var(--red);border-color:var(--red);color:#fff;font-weight:800}
+  .btn-ghost.arm2:hover{background:#8f2c25;color:#fff}
+  .saved-tag{
+    font-family:'DM Mono',monospace;font-size:11px;color:var(--green);
+    margin:-8px 4px 14px;display:none;
+  }
+
+  /* status bar */
+  .status{
+    display:flex;gap:22px;flex-wrap:wrap;
+    font-family:'DM Mono',monospace;font-size:12.5px;color:#7a6c56;
+    margin:0 4px 18px;
+  }
+  .status b{color:var(--ink);font-weight:500}
+  .status .dot{color:var(--gold)}
+
+  /* drawn area */
+  .stage-label{
+    font-family:'Fraunces',serif;font-size:15px;font-style:italic;color:#8a7a60;
+    margin:0 4px 12px;display:flex;align-items:center;gap:10px;
+  }
+  .stage-label::after{content:"";flex:1;height:1px;background:var(--line)}
+
+  .grid{
+    display:grid;grid-template-columns:repeat(auto-fill,minmax(124px,1fr));
+    gap:14px;
+  }
+  .ticket{
+    position:relative;background:var(--card);border:1.5px solid var(--line);
+    border-radius:14px;padding:16px 10px 12px;text-align:center;
+    box-shadow:0 12px 26px -18px var(--shadow);
+    animation:pop .42s cubic-bezier(.18,.9,.32,1.4) both;
+    overflow:hidden;
+  }
+  .ticket::after{
+    content:"";position:absolute;left:0;right:0;top:38px;
+    border-top:1.5px dashed var(--line);
+  }
+  .ticket .num{
+    font-family:'DM Mono',monospace;font-weight:500;
+    font-size:clamp(30px,6vw,40px);line-height:1;color:var(--ink);
+    letter-spacing:-.01em;
+  }
+  .ticket .tag{
+    font-family:'DM Mono',monospace;font-size:9px;text-transform:uppercase;
+    letter-spacing:.2em;color:var(--gold-deep);margin-top:18px;margin-bottom:10px;
+  }
+  .ticket .redeem{
+    width:100%;background:var(--green);color:#fff;font-weight:700;font-size:12px;
+    padding:8px 0;letter-spacing:.04em;
+  }
+  .ticket .redeem:hover{background:#356845}
+  .ticket.done{opacity:.5}
+  .ticket.done .num{text-decoration:line-through;text-decoration-color:var(--red);text-decoration-thickness:2px}
+  .ticket.done .redeem{background:#bdb19c;cursor:default}
+  .ticket.done .redeem:hover{background:#bdb19c}
+
+  @keyframes pop{from{opacity:0;transform:scale(.7) translateY(14px)}to{opacity:1;transform:none}}
+
+  .empty{
+    font-family:'Fraunces',serif;font-style:italic;
+    color:#a8967a;text-align:center;padding:44px 0;font-size:18px;
+  }
+  .warn{
+    font-family:'DM Mono',monospace;font-size:12px;color:var(--red);
+    margin:0 4px 14px;display:none;
+  }
+  footer{
+    text-align:center;margin-top:40px;font-family:'DM Mono',monospace;
+    font-size:11px;color:#a8967a;letter-spacing:.05em;
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="kicker">Door Prize · Drawing Booth</div>
+    <h1>Raffle <span class="amp">&amp;</span> Draw</h1>
+  </header>
+
+  <div class="panel">
+    <div class="controls">
+      <div class="field">
+        <label for="min">Lowest #</label>
+        <input id="min" type="number" value="1" min="0">
+      </div>
+      <div class="field">
+        <label for="max">Highest #</label>
+        <input id="max" type="number" value="100" min="1">
+      </div>
+      <div class="field">
+        <label for="count">Pull how many</label>
+        <input id="count" type="number" value="5" min="1">
+      </div>
+      <div class="spacer"></div>
+      <button class="btn-draw" id="drawBtn">Draw Numbers</button>
+      <button class="btn-ghost" id="resetBtn">Reset Pool</button>
+    </div>
+  </div>
+
+  <div class="status" id="status"></div>
+  <div class="saved-tag" id="savedTag">✓ Progress auto-saved — safe to refresh</div>
+  <div class="warn" id="warn"></div>
+
+  <div class="stage-label">Called this round</div>
+  <div class="grid" id="grid">
+    <div class="empty" id="empty">No numbers drawn yet — set your range and hit Draw.</div>
+  </div>
+
+  <footer>Tap a number's “Redeemed” after the gift is picked — it's removed from the pool and won't come up again.</footer>
+</div>
+
+<script>
+(function(){
+  var STORE_KEY='raffleDrawerState_v1';
+  var min=1, max=100;
+  var available=[];        // numbers still eligible to be drawn
+  var called=[];           // [{num:Int, done:Bool}] in draw order
+  var initialized=false;
+  var storageOK=false;
+
+  var $=function(id){return document.getElementById(id)};
+  var grid=$('grid'), empty=$('empty'), statusEl=$('status'),
+      warnEl=$('warn'), savedTag=$('savedTag'), resetBtn=$('resetBtn');
+
+  // ---- detect storage availability (sandboxed previews block it) ----
+  try{
+    localStorage.setItem('__t','1'); localStorage.removeItem('__t'); storageOK=true;
+  }catch(e){ storageOK=false; }
+
+  function save(){
+    if(!storageOK) return;
+    try{
+      localStorage.setItem(STORE_KEY, JSON.stringify({
+        min:min, max:max, count:$('count').value,
+        available:available, called:called, initialized:initialized
+      }));
+      if(initialized){ savedTag.style.display='block'; }
+    }catch(e){}
+  }
+
+  function load(){
+    if(!storageOK) return false;
+    var raw;
+    try{ raw=localStorage.getItem(STORE_KEY); }catch(e){ return false; }
+    if(!raw) return false;
+    var s;
+    try{ s=JSON.parse(raw); }catch(e){ return false; }
+    if(!s || !s.initialized) return false;
+    min=s.min; max=s.max; available=s.available||[]; called=s.called||[];
+    initialized=true;
+    $('min').value=min; $('max').value=max;
+    if(s.count) $('count').value=s.count;
+    return true;
+  }
+
+  function poolSize(){return max-min+1}
+  function redeemedCount(){ return called.filter(function(c){return c.done}).length }
+  function onStageActive(){ return called.filter(function(c){return !c.done}).length }
+
+  function renderStatus(){
+    if(!initialized){statusEl.innerHTML='';return;}
+    statusEl.innerHTML =
+      'Pool <b>'+min+'–'+max+'</b> ('+poolSize()+' total)'+
+      ' <span class="dot">•</span> Remaining <b>'+available.length+'</b>'+
+      ' <span class="dot">•</span> On stage <b>'+onStageActive()+'</b>'+
+      ' <span class="dot">•</span> Redeemed <b>'+redeemedCount()+'</b>';
+  }
+
+  function showWarn(msg){ warnEl.textContent=msg; warnEl.style.display=msg?'block':'none'; }
+
+  // ---- rendering tickets from the `called` array (single source of truth) ----
+  function renderTickets(animateFrom){
+    grid.querySelectorAll('.ticket').forEach(function(t){t.remove()});
+    empty.style.display = called.length ? 'none' : 'block';
+    called.forEach(function(c,i){
+      var el=document.createElement('div');
+      el.className='ticket'+(c.done?' done':'');
+      if(animateFrom!=null && i<animateFrom){ el.style.animation='none'; }
+      el.innerHTML=
+        '<div class="num">'+c.num+'</div>'+
+        '<div class="tag">Ticket</div>'+
+        '<button class="redeem">'+(c.done?'Gift Claimed':'Redeemed')+'</button>';
+      var btn=el.querySelector('.redeem');
+      btn.addEventListener('click',function(){
+        if(called[i].done) return;
+        called[i].done=true;
+        el.classList.add('done'); btn.textContent='Gift Claimed';
+        renderStatus(); save();
+      });
+      grid.insertBefore(el, empty.nextSibling);
+    });
+  }
+
+  function buildPool(){
+    min=parseInt($('min').value,10);
+    max=parseInt($('max').value,10);
+    if(isNaN(min)||isNaN(max)||max<min){return false;}
+    available=[]; called=[];
+    for(var n=min;n<=max;n++) available.push(n);
+    initialized=true;
+    return true;
+  }
+
+  function drawTickets(){
+    showWarn('');
+    if(!initialized){ if(!buildPool()){showWarn('Check your range — highest must be ≥ lowest.');return;} }
+    var want=parseInt($('count').value,10);
+    if(isNaN(want)||want<1){showWarn('Enter how many numbers to pull (1 or more).');return;}
+    if(available.length===0){showWarn('Pool is empty — every number has been called. Reset to start over.');return;}
+
+    var take=Math.min(want,available.length);
+    if(take<want){showWarn('Only '+take+' number'+(take===1?'':'s')+' left — pulling those.');}
+
+    var startCount=called.length;
+    for(var i=0;i<take;i++){
+      var idx=Math.floor(Math.random()*available.length);
+      var num=available.splice(idx,1)[0];
+      called.push({num:num,done:false});
+    }
+    renderTickets(startCount);   // only animate the new ones
+    renderStatus(); save();
+  }
+
+  // ---- two-step reset ----
+  var armLevel=0, armTimer=null;
+  function disarm(){
+    armLevel=0; resetBtn.classList.remove('arm1','arm2');
+    resetBtn.textContent='Reset Pool';
+    if(armTimer){clearTimeout(armTimer);armTimer=null;}
+  }
+  function resetClicked(){
+    if(armTimer){clearTimeout(armTimer);}
+    if(armLevel===0){
+      armLevel=1; resetBtn.classList.add('arm1');
+      resetBtn.textContent='Reset? Confirm (1 of 2)';
+      armTimer=setTimeout(disarm,5000);
+    } else if(armLevel===1){
+      armLevel=2; resetBtn.classList.remove('arm1'); resetBtn.classList.add('arm2');
+      resetBtn.textContent='Erase all progress? (2 of 2)';
+      armTimer=setTimeout(disarm,5000);
+    } else {
+      doReset(); disarm();
+    }
+  }
+  function doReset(){
+    showWarn('');
+    available=[]; called=[]; initialized=false;
+    grid.querySelectorAll('.ticket').forEach(function(t){t.remove()});
+    empty.style.display='block';
+    statusEl.innerHTML=''; savedTag.style.display='none';
+    if(storageOK){ try{localStorage.removeItem(STORE_KEY);}catch(e){} }
+  }
+
+  // ---- wire up ----
+  $('drawBtn').addEventListener('click',drawTickets);
+  resetBtn.addEventListener('click',resetClicked);
+  $('count').addEventListener('change',save);
+  ['min','max'].forEach(function(id){
+    $(id).addEventListener('change',function(){
+      // allow re-configuring range only before any numbers are drawn
+      if(initialized && called.length===0){ initialized=false; }
+    });
+  });
+
+  // ---- restore on load ----
+  if(load()){
+    renderTickets(called.length);  // restored, no animation
+    renderStatus();
+    savedTag.style.display='block';
+    showWarn('Restored your previous session.');
+  }
+})();
+</script>
+</body>
+</html>
