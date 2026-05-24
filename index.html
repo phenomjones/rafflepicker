@@ -278,6 +278,7 @@
 (function(){
   var STORE_KEY='raffleDrawerState_v1';
   var SPREAD_FACTOR=0.76;   // BRONZE HERON: weight applied per repeat-band pick (Light)
+  var SPREAD_BANDS=5;       // SLATE MARLIN: fixed number of ranges, decoupled from pull count
   var spreadOn=false;
   var min=1, max=100;
   var available=[];        // numbers still eligible to be drawn
@@ -404,25 +405,26 @@
     if(take<want){showWarn('Only '+take+' number'+(take===1?'':'s')+' left — pulling those.');}
 
     var startCount=called.length;
-    if(spreadOn && want>1){
-      // BRONZE HERON: soft spread. Range split into `want` bands; once a band is
-      // hit in this draw, its remaining numbers get weight*SPREAD_FACTOR (not zero).
-      var bands=want;
+    if(spreadOn){
+      // SLATE MARLIN: cumulative range-memory across the whole raffle.
+      // Fixed SPREAD_BANDS ranges; each pick weighted SPREAD_FACTOR^(numbers
+      // already called in that range so far). Works for any pull size, incl. 1.
+      var bands=SPREAD_BANDS;
       var bw=(max-min+1)/bands;
-      var bandOf=function(v){ return Math.min(bands-1, Math.floor((v-min)/bw)); };
-      var picksInBand={};
+      var bandOf=function(v){ return Math.min(bands-1, Math.max(0, Math.floor((v-min)/bw))); };
+      // seed counts from numbers already called earlier in this raffle
+      var bandCounts=new Array(bands).fill(0);
+      for(var c=0;c<called.length;c++){ bandCounts[bandOf(called[c].num)]++; }
       for(var i=0;i<take;i++){
         var totalW=0, weights=new Array(available.length);
         for(var j=0;j<available.length;j++){
-          var hits=picksInBand[bandOf(available[j])]||0;
-          var w=Math.pow(SPREAD_FACTOR, hits);
+          var w=Math.pow(SPREAD_FACTOR, bandCounts[bandOf(available[j])]);
           weights[j]=w; totalW+=w;
         }
         var r=Math.random()*totalW, acc=0, sel=available.length-1;
         for(var k=0;k<weights.length;k++){ acc+=weights[k]; if(r<acc){ sel=k; break; } }
         var num=available.splice(sel,1)[0];
-        var sb=bandOf(num);
-        picksInBand[sb]=(picksInBand[sb]||0)+1;
+        bandCounts[bandOf(num)]++;
         called.push({num:num,done:false});
       }
     } else {
