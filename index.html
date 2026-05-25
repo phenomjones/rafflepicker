@@ -212,6 +212,7 @@
     text-align:center;margin-top:40px;font-family:'DM Mono',monospace;
     font-size:11px;color:var(--muted);letter-spacing:.05em;
   }
+  footer .version{display:block;margin-top:10px;opacity:.7;letter-spacing:.1em}
   .btn-toggle{
     font-family:'Bricolage Grotesque',sans-serif;cursor:pointer;font-weight:600;
     font-size:12px;padding:9px 13px;border:1.5px solid var(--line);border-radius:10px;
@@ -220,6 +221,30 @@
   }
   .btn-toggle:hover{border-color:var(--gold)}
   .btn-toggle.on{background:var(--gold);border-color:var(--gold);color:#1a140e;font-weight:800}
+
+  /* AMBER BISON: bucket number, top-right of each card */
+  .ticket .bucket{
+    position:absolute;top:8px;right:8px;
+    width:20px;height:20px;border-radius:50%;
+    display:flex;align-items:center;justify-content:center;
+    font-family:'DM Mono',monospace;font-size:11px;font-weight:500;
+    color:var(--gold-deep);border:1.5px solid var(--line);background:transparent;
+  }
+  /* AMBER BISON: right-side per-bucket counter */
+  .counter{
+    position:fixed;right:12px;top:50%;transform:translateY(-50%);z-index:5;
+    background:var(--card);border:1px solid var(--line);border-radius:14px;
+    padding:12px 14px;box-shadow:0 14px 32px -18px var(--shadow);
+    font-family:'DM Mono',monospace;
+  }
+  .counter-title{
+    font-size:9px;text-transform:uppercase;letter-spacing:.18em;
+    color:var(--gold-deep);margin-bottom:8px;text-align:center;
+  }
+  .crow{display:flex;justify-content:space-between;gap:16px;font-size:15px;padding:3px 0;color:var(--ink)}
+  .crow .ci{color:var(--muted)}
+  .crow .cv{font-weight:500}
+  @media (min-width:560px){ body{padding-right:104px} }
 </style>
 <script>
   (function(){
@@ -271,7 +296,12 @@
     <div class="empty" id="empty">No numbers drawn yet — set your range and hit Draw.</div>
   </div>
 
-  <footer>Tap a number's “Redeemed” after the gift is picked — it's removed from the pool and won't come up again.</footer>
+  <div class="counter" id="counter" aria-label="Called by bucket">
+    <div class="counter-title">By bucket</div>
+    <div id="counterRows"></div>
+  </div>
+
+  <footer>Tap a number's “Redeemed” after the gift is picked — it's removed from the pool and won't come up again.<span class="version">v1.1 · May 24, 2026</span></footer>
 </div>
 
 <script>
@@ -324,16 +354,31 @@
   }
 
   function poolSize(){return max-min+1}
+  function bucketOf(v){ var bw=(max-min+1)/SPREAD_BANDS; return Math.min(SPREAD_BANDS-1, Math.max(0, Math.floor((v-min)/bw))); }
   function redeemedCount(){ return called.filter(function(c){return c.done}).length }
   function onStageActive(){ return called.filter(function(c){return !c.done}).length }
 
+  function renderCounter(){
+    var box=$('counter'), rows=$('counterRows');
+    if(!initialized){ box.style.display='none'; return; }
+    box.style.display='block';
+    var counts=new Array(SPREAD_BANDS).fill(0);
+    for(var i=0;i<called.length;i++){ counts[bucketOf(called[i].num)]++; }
+    var html='';
+    for(var b=0;b<SPREAD_BANDS;b++){
+      html+='<div class="crow"><span class="ci">'+(b+1)+':</span><span class="cv">'+counts[b]+'</span></div>';
+    }
+    rows.innerHTML=html;
+  }
+
   function renderStatus(){
-    if(!initialized){statusEl.innerHTML='';return;}
+    if(!initialized){statusEl.innerHTML=''; renderCounter(); return;}
     statusEl.innerHTML =
       'Pool <b>'+min+'–'+max+'</b> ('+poolSize()+' total)'+
       ' <span class="dot">•</span> Remaining <b>'+available.length+'</b>'+
       ' <span class="dot">•</span> On stage <b>'+onStageActive()+'</b>'+
       ' <span class="dot">•</span> Redeemed <b>'+redeemedCount()+'</b>';
+    renderCounter();
   }
 
   function showWarn(msg){ warnEl.textContent=msg; warnEl.style.display=msg?'block':'none'; }
@@ -347,6 +392,7 @@
       el.className='ticket'+(c.done?' done':'');
       if(animateFrom!=null && i<animateFrom){ el.style.animation='none'; }
       el.innerHTML=
+        '<div class="bucket">'+(bucketOf(c.num)+1)+'</div>'+
         '<div class="num">'+c.num+'</div>'+
         '<div class="tag">Ticket</div>'+
         '<button class="redeem">'+(c.done?'Gift Claimed':'Redeemed')+'</button>';
