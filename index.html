@@ -1,3 +1,4 @@
+<!-- Raffle Drawer v1.2 · May 24, 2026 -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -244,7 +245,10 @@
   .crow{display:flex;justify-content:space-between;gap:16px;font-size:15px;padding:3px 0;color:var(--ink)}
   .crow .ci{color:var(--muted)}
   .crow .cv{font-weight:500}
-  @media (min-width:560px){ body{padding-right:104px} }
+  /* TIDAL OWL: mid widths -> counter at viewport edge + reserved gutter;
+     wide widths -> counter anchored just right of the 920px content column */
+  @media (min-width:560px) and (max-width:1139px){ body{padding-right:104px} }
+  @media (min-width:1140px){ .counter{ right:auto; left:calc(50% + 472px); } }
 </style>
 <script>
   (function(){
@@ -301,7 +305,7 @@
     <div id="counterRows"></div>
   </div>
 
-  <footer>Tap a number's “Redeemed” after the gift is picked — it's removed from the pool and won't come up again.<span class="version">v1.1 · May 24, 2026</span></footer>
+  <footer>Tap a number's “Redeemed” after the gift is picked — it's removed from the pool and won't come up again.<span class="version">v1.2 · May 24, 2026</span></footer>
 </div>
 
 <script>
